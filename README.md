@@ -1,8 +1,8 @@
 # Formula1DW: Pit-Wall Dashboard
 
-Data warehouse e dashboard da temporada de F1 2025: pipeline ETL de verdade
-(não é CSV estático), banco em estrela no SQL Server, e um painel Streamlit
-com identidade visual de telão de muro de boxes.
+Data warehouse e dashboard da temporada de F1 2025: pipeline ETL, banco em
+estrela no SQL Server, e um painel Streamlit com identidade visual de telão
+de muro de boxes.
 
 ![Home](docs/screenshots/home.jpg)
 
