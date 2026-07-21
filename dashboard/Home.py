@@ -1,7 +1,7 @@
 import streamlit as st
 import plotly.express as px
 from db import get_engine, run_query
-from style import inject, eyebrow, kpi_row, themed, format_millis, live_badge
+from style import inject, eyebrow, kpi_row, themed, format_millis, live_badge, PLOTLY_CONFIG
 from i18n import lang_selector, t
 
 SEASON = 2025
@@ -105,14 +105,14 @@ try:
             driver_points.sort_values("RunningPoints"),
             x="RunningPoints", y="DriverName", orientation="h", text="RunningPoints",
         )
-        st.plotly_chart(themed(fig, height=420), use_container_width=True)
+        st.plotly_chart(themed(fig, height=420), use_container_width=True, config=PLOTLY_CONFIG)
     with col2:
         eyebrow(t("eyebrow_top_constructors"))
         fig2 = px.bar(
             constructor_points.sort_values("RunningPoints"),
             x="RunningPoints", y="ConstructorName", orientation="h", text="RunningPoints",
         )
-        st.plotly_chart(themed(fig2, height=420), use_container_width=True)
+        st.plotly_chart(themed(fig2, height=420), use_container_width=True, config=PLOTLY_CONFIG)
 
     st.success(t("connected"))
 except Exception as e:

@@ -13,6 +13,10 @@ COLORS = {
     "purple": "#9B59B6",
 }
 
+# Plotly's default touch handling treats a scroll/drag over the chart as a
+# zoom gesture, which hijacks page scrolling on mobile mid-swipe.
+PLOTLY_CONFIG = {"scrollZoom": False}
+
 COMPOUND_COLORS = {
     "SOFT": "#DA291C",
     "MEDIUM": "#FFD100",

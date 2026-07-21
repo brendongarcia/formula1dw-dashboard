@@ -2,7 +2,7 @@ import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
 from db import run_query
-from style import inject, eyebrow, kpi_row, themed, format_millis, COMPOUND_COLORS, COLORS, live_badge
+from style import inject, eyebrow, kpi_row, themed, format_millis, COMPOUND_COLORS, COLORS, live_badge, PLOTLY_CONFIG
 from i18n import lang_selector, t
 
 SEASON = 2025
@@ -53,7 +53,7 @@ else:
         laps, x="LapNumber", y="LapTimeMillis", color="Compound", markers=True,
         color_discrete_map=COMPOUND_COLORS,
     )
-    st.plotly_chart(themed(fig), use_container_width=True)
+    st.plotly_chart(themed(fig), use_container_width=True, config=PLOTLY_CONFIG)
     laps_display = laps.copy()
     laps_display["LapTime"] = laps_display["LapTimeMillis"].apply(format_millis)
     laps_display["Stint"] = laps_display["Stint"].astype("Int64")
@@ -101,4 +101,4 @@ else:
     ))
     fig2 = themed(fig2)
     fig2.update_yaxes(visible=False)
-    st.plotly_chart(fig2, use_container_width=True)
+    st.plotly_chart(fig2, use_container_width=True, config=PLOTLY_CONFIG)

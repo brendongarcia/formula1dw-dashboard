@@ -1,7 +1,7 @@
 import streamlit as st
 import plotly.graph_objects as go
 from db import run_query
-from style import inject, eyebrow, kpi_row, format_millis, COLORS, live_badge
+from style import inject, eyebrow, kpi_row, format_millis, COLORS, live_badge, PLOTLY_CONFIG
 from i18n import lang_selector, t
 from lap_ranking import compute_ranking
 
@@ -75,7 +75,7 @@ else:
         yaxis=dict(title="Y", gridcolor=COLORS["border"], visible=False, scaleanchor="x", scaleratio=1),
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0),
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True, config=PLOTLY_CONFIG)
 
 laps_ranking = run_query(
     "SELECT DriverName, MIN(LapTimeMillis) AS BestLapMillis FROM vw_LapTimesEnriched "

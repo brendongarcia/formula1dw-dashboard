@@ -1,7 +1,7 @@
 import streamlit as st
 import plotly.express as px
 from db import run_query
-from style import inject, eyebrow, kpi_row, themed, format_millis, live_badge
+from style import inject, eyebrow, kpi_row, themed, format_millis, live_badge, PLOTLY_CONFIG
 from i18n import lang_selector, t
 
 SEASON = 2025
@@ -87,4 +87,4 @@ if weather.empty:
     st.info(t("info_no_weather"))
 else:
     fig = themed(px.line(weather, x="SampleTime", y=["AirTemp", "TrackTemp"]), height=420)
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True, config=PLOTLY_CONFIG)

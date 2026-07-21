@@ -1,7 +1,7 @@
 import streamlit as st
 import plotly.express as px
 from db import run_query
-from style import inject, eyebrow, kpi_row, themed, live_badge
+from style import inject, eyebrow, kpi_row, themed, live_badge, PLOTLY_CONFIG
 from i18n import lang_selector, t
 
 SEASON = 2025
@@ -38,7 +38,7 @@ kpi_row(
 
 eyebrow(t("eyebrow_drivers"))
 fig = themed(px.line(driver_df, x="Round", y="RunningPoints", color="DriverName", markers=True))
-st.plotly_chart(fig, use_container_width=True)
+st.plotly_chart(fig, use_container_width=True, config=PLOTLY_CONFIG)
 st.dataframe(final_driver, use_container_width=True, height=420)
 
 constructor_df = run_query(
@@ -49,7 +49,7 @@ constructor_df = run_query(
 
 eyebrow(t("eyebrow_constructors"))
 fig2 = themed(px.line(constructor_df, x="Round", y="RunningPoints", color="ConstructorName", markers=True))
-st.plotly_chart(fig2, use_container_width=True)
+st.plotly_chart(fig2, use_container_width=True, config=PLOTLY_CONFIG)
 
 final_round_c = constructor_df["Round"].max()
 final_constructor = (
