@@ -1,7 +1,7 @@
 import streamlit as st
 import plotly.express as px
 from db import get_engine, run_query
-from style import inject, eyebrow, kpi_row, themed, format_millis, live_badge, PLOTLY_CONFIG
+from style import inject, eyebrow, kpi_row, themed, live_badge, PLOTLY_CONFIG
 from i18n import lang_selector, t
 
 SEASON = 2025
@@ -42,11 +42,6 @@ try:
         "WHERE Season = :season AND Position = 1 GROUP BY DriverName ORDER BY Poles DESC LIMIT 1",
         {"season": SEASON},
     )
-    fastest_lap = run_query(
-        "SELECT DriverName, RaceName, LapTimeMillis FROM vw_LapTimesEnriched "
-        "WHERE Season = :season ORDER BY LapTimeMillis ASC LIMIT 1",
-        {"season": SEASON},
-    )
 
     kpi_row(
         [
@@ -75,12 +70,6 @@ try:
                 "value": most_poles.iloc[0]["DriverName"] if not most_poles.empty else "—",
                 "sub": f'{int(most_poles.iloc[0]["Poles"])} {t("unit_poles")}' if not most_poles.empty else "",
                 "accent": "amber",
-            },
-            {
-                "label": t("kpi_season_fastest_lap"),
-                "value": fastest_lap.iloc[0]["DriverName"] if not fastest_lap.empty else "—",
-                "sub": f'{format_millis(fastest_lap.iloc[0]["LapTimeMillis"])}s · {fastest_lap.iloc[0]["RaceName"]}' if not fastest_lap.empty else "",
-                "accent": "teal",
             },
         ]
     )
