@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+etl/.fastf1_cache/
+etl/logs/
+.pytest_cache/

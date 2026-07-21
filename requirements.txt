@@ -1,0 +1,8 @@
+fastf1
+pandas
+numpy
+SQLAlchemy
+pyodbc
+requests
+streamlit
+plotly
