@@ -26,6 +26,53 @@ Jolpica-F1 / FastF1  →  ETL (Python)  →  SQL Server (star schema)
 O dashboard lê de um snapshot `.sqlite` já incluído no repo. Roda direto,
 sem precisar de SQL Server no ar.
 
+## Como foi construído
+
+O projeto saiu em fases, cada uma resolvendo um problema específico antes de
+passar pra próxima.
+
+#### Banco em camadas
+
+`raw` espelha o formato bruto da Jolpica-F1/FastF1 sem tipagem forte. `stg`
+tipa e limpa, pronto pra MERGE. `dw` é o modelo em estrela de verdade:
+dimensões e fatos com chave substituta. `mart` são views de consumo em cima
+do `dw`, pra quem só quer ler não precisar entender grain de fato nem chave
+substituta. Cada schema tem seu próprio script em `database/`, e as
+procedures de carga usam MERGE, então rodar de novo não duplica linha.
+
+#### Pipeline incremental
+
+`etl/run.py` decide o que falta carregar consultando direto `dw.DimRace` e
+`dw.FactResults`: se a corrida já está lá, pula. Não existe tabela de
+checkpoint própria. A exceção é a última corrida carregada, que ele sempre
+reprocessa, porque a FIA aplica punição pós-corrida e o resultado pode
+mudar depois do primeiro carregamento. Falha de extração e falha de carga
+saem com código de erro diferente, pra dar pra saber onde parou sem abrir o
+log inteiro.
+
+#### Telemetria sob demanda
+
+`dw.FactTelemetry` sozinho, carregado pra todo mundo, é volume grande
+demais pra fazer sentido sem pedir. Fica fora do pipeline principal:
+`python -m etl.telemetry --season S --round R --driver D` carrega só aquele
+piloto naquela corrida.
+
+#### Geometria de pista
+
+O problema aqui era achar a coordenada X/Y exata onde um setor de
+cronometragem termina, e nenhum dado da FastF1 responde isso direto.
+Detalhes na seção própria mais abaixo.
+
+#### Validação manual no fim
+
+Depois de tudo montado, rodei os números do dashboard contra o banco
+direto, um por um. Achei dois bugs reais assim. A soma de pontos por
+construtor tratava piloto como grão em vez de equipe, e dois pilotos do
+mesmo time geravam duas somas acumuladas diferentes pro mesmo round. A
+telemetria de um carro que abandona continua gravando parado no box,
+empilhando centenas de leituras na mesma coordenada. Os dois estão
+corrigidos no código atual.
+
 ## Páginas do dashboard
 
 ### Home
@@ -34,12 +81,11 @@ Visão geral da temporada: líder do campeonato (piloto e construtor), mais
 vitórias, mais poles, volta mais rápida, e os top 5 de pontos em piloto e
 construtor.
 
-- **Líder do campeonato**: quem tem mais pontos acumulados na rodada mais
-  recente já disputada.
-- **Mais vitórias / mais poles**: contagem de 1º lugar na corrida e na
-  classificação de largada, somando todas as rodadas da temporada.
-- **Volta mais rápida**: a menor volta cronometrada da temporada inteira,
-  entre todos os pilotos e todas as corridas.
+Líder do campeonato é quem tem mais pontos acumulados na rodada mais
+recente já disputada. Mais vitórias e mais poles contam 1º lugar na corrida
+e na classificação de largada, somando a temporada inteira. Volta mais
+rápida é a menor volta cronometrada da temporada, entre todos os pilotos e
+todas as corridas.
 
 ### Standings
 
@@ -65,11 +111,11 @@ Tempos de volta por composto de pneu, melhor volta, volta média, e
 telemetria detalhada (velocidade, marcha, acelerador) de uma volta
 escolhida.
 
-- **Melhor volta / volta média**: menor e média dos tempos de volta do
-  piloto naquela corrida.
-- **Telemetria**: amostras de velocidade, marcha e acelerador ao longo da
-  distância percorrida na volta, direto do canal de telemetria do carro
-  captado pela FastF1 (o mesmo dado usado nas transmissões oficiais).
+Melhor volta e volta média são o menor tempo e a média dos tempos de volta
+do piloto naquela corrida. A telemetria vem de amostras de velocidade,
+marcha e acelerador ao longo da distância percorrida na volta, direto do
+canal de telemetria do carro captado pela FastF1, o mesmo dado usado nas
+transmissões oficiais.
 
 ![Laps & Telemetry](docs/screenshots/laps-telemetry.jpg)
 

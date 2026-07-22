@@ -20,7 +20,7 @@ driver_df = run_query(
 
 final_round = driver_df["Round"].max()
 final_driver = (
-    driver_df[driver_df["Round"] == final_round]
+    driver_df.loc[driver_df.groupby("DriverName")["Round"].idxmax()]
     .sort_values("RunningPoints", ascending=False)
     .reset_index(drop=True)
 )
@@ -51,9 +51,8 @@ eyebrow(t("eyebrow_constructors"))
 fig2 = themed(px.line(constructor_df, x="Round", y="RunningPoints", color="ConstructorName", markers=True))
 st.plotly_chart(fig2, use_container_width=True, config=PLOTLY_CONFIG)
 
-final_round_c = constructor_df["Round"].max()
 final_constructor = (
-    constructor_df[constructor_df["Round"] == final_round_c]
+    constructor_df.loc[constructor_df.groupby("ConstructorName")["Round"].idxmax()]
     .sort_values("RunningPoints", ascending=False)
     .reset_index(drop=True)
 )
