@@ -79,6 +79,21 @@ CREATE TABLE stg.Result (
 );
 GO
 
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE schema_id = SCHEMA_ID('stg') AND name = 'SprintResult')
+CREATE TABLE stg.SprintResult (
+    RaceId VARCHAR(50) NOT NULL,
+    DriverId VARCHAR(50) NOT NULL,
+    ConstructorId VARCHAR(50) NOT NULL,
+    StatusId INT NOT NULL,
+    GridPosition INT NULL,
+    FinishPosition INT NULL,
+    PositionOrder INT NULL,
+    Points DECIMAL(6,2) NULL,
+    Laps INT NULL,
+    PRIMARY KEY (RaceId, DriverId)
+);
+GO
+
 IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE schema_id = SCHEMA_ID('stg') AND name = 'Qualifying')
 CREATE TABLE stg.Qualifying (
     RaceId VARCHAR(50) NOT NULL,

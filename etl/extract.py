@@ -19,6 +19,12 @@ _QUALIFYING_RESULTS_COLUMNS = [
     "constructorId", "constructorUrl", "constructorName", "constructorNationality",
 ]
 _PIT_STOPS_COLUMNS = ["driverId", "stop", "lap", "time", "duration"]
+_SPRINT_RESULTS_COLUMNS = [
+    "number", "position", "positionText", "points", "grid", "laps", "status",
+    "driverId", "driverNumber", "driverCode", "driverUrl", "givenName", "familyName",
+    "dateOfBirth", "driverNationality", "constructorId", "constructorUrl", "constructorName",
+    "constructorNationality",
+]
 
 
 def _first_or_empty(response, columns):
@@ -59,6 +65,12 @@ def extract_finishing_status(season, round_):
 def extract_race_results(season, round_):
     response = _ergast.get_race_results(season=season, round=round_)
     return _first_or_empty(response, _RACE_RESULTS_COLUMNS)
+
+
+@retry()
+def extract_sprint_results(season, round_):
+    response = _ergast.get_sprint_results(season=season, round=round_)
+    return _first_or_empty(response, _SPRINT_RESULTS_COLUMNS)
 
 
 @retry()

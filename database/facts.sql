@@ -116,3 +116,19 @@ CREATE TABLE dw.FactTrackSegment (
     SectorNumber TINYINT NOT NULL
 );
 GO
+
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE schema_id = SCHEMA_ID('dw') AND name = 'FactSprintResults')
+CREATE TABLE dw.FactSprintResults (
+    FactSprintResultsKey INT IDENTITY(1,1) PRIMARY KEY,
+    RaceKey INT NOT NULL REFERENCES dw.DimRace(RaceKey),
+    DriverKey INT NOT NULL REFERENCES dw.DimDriver(DriverKey),
+    ConstructorKey INT NOT NULL REFERENCES dw.DimConstructor(ConstructorKey),
+    StatusKey INT NOT NULL REFERENCES dw.DimStatus(StatusKey),
+    GridPosition INT NULL,
+    FinishPosition INT NULL,
+    PositionOrder INT NULL,
+    Points DECIMAL(6,2) NULL,
+    Laps INT NULL,
+    CONSTRAINT UQ_FactSprintResults_Race_Driver UNIQUE (RaceKey, DriverKey)
+);
+GO

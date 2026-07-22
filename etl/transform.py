@@ -92,6 +92,23 @@ def transform_results(results_df, status_df, race_id):
     return out.dropna(subset=["DriverId", "StatusId"])
 
 
+def transform_sprint_results(results_df, status_df, race_id):
+    status_map = dict(zip(status_df["status"], status_df["statusId"]))
+
+    out = pd.DataFrame({
+        "RaceId": race_id,
+        "DriverId": results_df["driverId"],
+        "ConstructorId": results_df["constructorId"],
+        "StatusId": results_df["status"].map(status_map).astype("Int64"),
+        "GridPosition": results_df["grid"].astype("Int64"),
+        "FinishPosition": pd.to_numeric(results_df["position"], errors="coerce").astype("Int64"),
+        "PositionOrder": range(1, len(results_df) + 1),
+        "Points": results_df["points"].astype(float),
+        "Laps": results_df["laps"].astype("Int64"),
+    })
+    return out.dropna(subset=["DriverId", "StatusId"])
+
+
 def transform_qualifying(df, race_id):
     out = pd.DataFrame({
         "RaceId": race_id,

@@ -16,14 +16,20 @@ INNER JOIN dw.DimStatus st ON st.StatusKey = fr.StatusKey;
 GO
 
 CREATE OR ALTER VIEW mart.vw_DriverStandings AS
+WITH RoundPoints AS (
+    SELECT
+        ra.Season, d.DriverKey, d.FullName AS DriverName, fr.RaceKey, ra.Round,
+        fr.Points + COALESCE(sr.Points, 0) AS RoundPoints
+    FROM dw.FactResults fr
+    INNER JOIN dw.DimRace ra ON ra.RaceKey = fr.RaceKey
+    INNER JOIN dw.DimDriver d ON d.DriverKey = fr.DriverKey
+    LEFT JOIN dw.FactSprintResults sr ON sr.RaceKey = fr.RaceKey AND sr.DriverKey = fr.DriverKey
+)
 SELECT
-    ra.Season, d.DriverKey, d.FullName AS DriverName,
-    fr.RaceKey, ra.Round, fr.Points,
-    SUM(fr.Points) OVER (PARTITION BY ra.Season, d.DriverKey ORDER BY ra.Round
+    Season, DriverKey, DriverName, RaceKey, Round, RoundPoints AS Points,
+    SUM(RoundPoints) OVER (PARTITION BY Season, DriverKey ORDER BY Round
         ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS RunningPoints
-FROM dw.FactResults fr
-INNER JOIN dw.DimRace ra ON ra.RaceKey = fr.RaceKey
-INNER JOIN dw.DimDriver d ON d.DriverKey = fr.DriverKey;
+FROM RoundPoints;
 GO
 
 CREATE OR ALTER VIEW mart.vw_ConstructorStandings AS
@@ -34,10 +40,11 @@ CREATE OR ALTER VIEW mart.vw_ConstructorStandings AS
 WITH RoundPoints AS (
     SELECT
         ra.Season, c.ConstructorKey, c.Name AS ConstructorName, ra.Round,
-        SUM(fr.Points) AS RoundPoints
+        SUM(fr.Points + COALESCE(sr.Points, 0)) AS RoundPoints
     FROM dw.FactResults fr
     INNER JOIN dw.DimRace ra ON ra.RaceKey = fr.RaceKey
     INNER JOIN dw.DimConstructor c ON c.ConstructorKey = fr.ConstructorKey
+    LEFT JOIN dw.FactSprintResults sr ON sr.RaceKey = fr.RaceKey AND sr.DriverKey = fr.DriverKey
     GROUP BY ra.Season, c.ConstructorKey, c.Name, ra.Round
 )
 SELECT

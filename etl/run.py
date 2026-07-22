@@ -13,6 +13,7 @@ def process_race(season, round_, engine):
     race_id = f"{season}-{round_}"
 
     results_raw = extract.extract_race_results(season, round_)
+    sprint_raw = extract.extract_sprint_results(season, round_)
     status_raw = extract.extract_finishing_status(season, round_)
     qualifying_raw = extract.extract_qualifying_results(season, round_)
     pit_stops_raw = extract.extract_pit_stops(season, round_)
@@ -21,12 +22,14 @@ def process_race(season, round_, engine):
     weather_raw, session_date = extract.get_weather(session)
 
     results_df = transform.transform_results(results_raw, status_raw, race_id)
+    sprint_df = transform.transform_sprint_results(sprint_raw, status_raw, race_id)
     qualifying_df = transform.transform_qualifying(qualifying_raw, race_id)
     pit_stops_df = transform.transform_pit_stops(pit_stops_raw, race_id)
     lap_times_df = transform.transform_lap_times(laps_raw, results_raw, race_id)
     weather_df = transform.transform_weather(weather_raw, session_date, race_id)
 
     load.truncate_and_load(engine, "stg", "Result", results_df)
+    load.truncate_and_load(engine, "stg", "SprintResult", sprint_df)
     load.truncate_and_load(engine, "stg", "Qualifying", qualifying_df)
     load.truncate_and_load(engine, "stg", "PitStop", pit_stops_df)
     load.truncate_and_load(engine, "stg", "LapTime", lap_times_df)

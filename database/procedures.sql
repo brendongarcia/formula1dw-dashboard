@@ -210,6 +210,46 @@ BEGIN
 END
 GO
 
+CREATE OR ALTER PROCEDURE dw.usp_Load_FactSprintResults
+    @BatchId UNIQUEIDENTIFIER
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @StartTime DATETIME2 = SYSDATETIME();
+    DECLARE @Rows INT = 0;
+
+    BEGIN TRY
+        MERGE dw.FactSprintResults AS tgt
+        USING (
+            SELECT ra.RaceKey, dr.DriverKey, co.ConstructorKey, st.StatusKey,
+                   s.GridPosition, s.FinishPosition, s.PositionOrder, s.Points, s.Laps
+            FROM stg.SprintResult s
+            INNER JOIN dw.DimRace ra ON ra.RaceId = s.RaceId
+            INNER JOIN dw.DimDriver dr ON dr.DriverId = s.DriverId
+            INNER JOIN dw.DimConstructor co ON co.ConstructorId = s.ConstructorId
+            INNER JOIN dw.DimStatus st ON st.StatusId = s.StatusId
+        ) AS src
+            ON tgt.RaceKey = src.RaceKey AND tgt.DriverKey = src.DriverKey
+        WHEN MATCHED THEN
+            UPDATE SET tgt.ConstructorKey = src.ConstructorKey, tgt.StatusKey = src.StatusKey,
+                       tgt.GridPosition = src.GridPosition, tgt.FinishPosition = src.FinishPosition,
+                       tgt.PositionOrder = src.PositionOrder, tgt.Points = src.Points, tgt.Laps = src.Laps
+        WHEN NOT MATCHED BY TARGET THEN
+            INSERT (RaceKey, DriverKey, ConstructorKey, StatusKey, GridPosition, FinishPosition, PositionOrder, Points, Laps)
+            VALUES (src.RaceKey, src.DriverKey, src.ConstructorKey, src.StatusKey, src.GridPosition, src.FinishPosition,
+                    src.PositionOrder, src.Points, src.Laps);
+
+        SET @Rows = @@ROWCOUNT;
+        INSERT INTO etl.LoadLog (BatchId, TableName, StartTime, EndTime, RowsAffected, Status)
+        VALUES (@BatchId, 'dw.FactSprintResults', @StartTime, SYSDATETIME(), @Rows, 'SUCCESS');
+    END TRY
+    BEGIN CATCH
+        INSERT INTO etl.LoadLog (BatchId, TableName, StartTime, EndTime, RowsAffected, Status, ErrorMessage)
+        VALUES (@BatchId, 'dw.FactSprintResults', @StartTime, SYSDATETIME(), 0, 'FAILED', ERROR_MESSAGE());
+    END CATCH
+END
+GO
+
 CREATE OR ALTER PROCEDURE dw.usp_Load_FactQualifying
     @BatchId UNIQUEIDENTIFIER
 AS
@@ -369,6 +409,7 @@ BEGIN
     EXEC dw.usp_Load_DimCircuit @BatchId;
     EXEC dw.usp_Load_DimRace @BatchId;
     EXEC dw.usp_Load_FactResults @BatchId;
+    EXEC dw.usp_Load_FactSprintResults @BatchId;
     EXEC dw.usp_Load_FactQualifying @BatchId;
     EXEC dw.usp_Load_FactLapTimes @BatchId;
     EXEC dw.usp_Load_FactPitStops @BatchId;
